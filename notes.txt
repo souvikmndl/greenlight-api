@@ -1,0 +1,6 @@
+JSON Decode() error using NewDecoder() from json/encoding
+
+- json.SyntexError, io.ErrEnexptedEOF --> syntax error with the JSON payload
+- json.UnmarshalTypeError --> a JSON value is not appropriate for the destination Go type 
+- json.InvalidUnmarshalError --> err in app code, possibly because the destination is not a pointer
+- io.EOF --> JSON being decoded in empty
