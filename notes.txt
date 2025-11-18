@@ -8,3 +8,22 @@ JSON Decode() error using NewDecoder() from json/encoding
 -----------
 Postgres login: psql -U postgres
 Configuring the database connection pool chapter for theory
+
+---------------------
+Migrations:
+- migrate to next version
+  migrate -path=./migrations -database=$GREENLIGHT_DB_DSN up
+- migrate to a specific version 
+  migrate -path=./migrations -database=$GREENLIGHT_DB_DSN version 
+- migrate up or down to a specific version
+  migrate -path=./migrations -database=$GREENLIGHT_DB_DSN goto 1
+- rollback by a specific number of migrations 
+  migrate -path=./migrations -database=$GREENLIGHT_DB_DSN down 1
+- When migration error happens:
+    - investigate where it went wrong, check if partial updates were applied
+    - if yes, manually roll back the partial migration 
+    - then force the version number in schema_migrations table to correct value
+    - eg, to force the version numjber to 1:
+    - migrate -path=./migrations -database=$EXAMPLE_DSN force 1
+- running migrations from remote sources like S3:
+  - migrate - source="s3://<bucket>/<path>" -database=$EXAMPLE_DSN up
