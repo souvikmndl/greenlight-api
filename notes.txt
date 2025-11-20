@@ -27,3 +27,24 @@ Migrations:
     - migrate -path=./migrations -database=$EXAMPLE_DSN force 1
 - running migrations from remote sources like S3:
   - migrate - source="s3://<bucket>/<path>" -database=$EXAMPLE_DSN up
+------------------------------
+
+Data Race Conditions:
+- when two users try to update the same resource at exactly the same time, we run
+  into a data data condition. To tackle this, we can use a simple version(int) check
+  in our update query, like we have in our update query where we are specifying that
+  update must happen only when the version matches. Using an integer field is safe
+  and computationally light. Other options are:
+    - last_updated_timestamp: there are many problems with this including server's clock
+    malfunctioning
+    - uuid: high entropy uuid can handle this well without revealing the version to the user
+
+--------Read Managing SQL Query Timeouts---------------
+- the timeout starts from the moment you create the context
+- the Postgres driver has channels that communicate with the database
+- when timeout is reached, even mid query, a signal is sent via the channel
+- and we get this error message: "pq: canceling statement due to user request"
+- it is due to user request because our API is using the db and the API itself
+  has asked for the query to be terminated
+- it can also happen that while Scan() is called, to read the data into the
+  variables, the ctx deadline is reached. In that case we get "context deadline exceeded"

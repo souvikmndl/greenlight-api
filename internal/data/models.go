@@ -8,6 +8,8 @@ import (
 var (
 	// ErrRecordNotFound represent db err when entry is not found
 	ErrRecordNotFound = errors.New("record not found")
+	// ErrEditConflict represents data race error, look this up in notes
+	ErrEditConflict = errors.New("edit conflict")
 )
 
 // Models wraps all individual models
