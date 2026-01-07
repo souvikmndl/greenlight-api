@@ -31,7 +31,7 @@ Migrations:
 
 Data Race Conditions:
 - when two users try to update the same resource at exactly the same time, we run
-  into a data data condition. To tackle this, we can use a simple version(int) check
+  into a data race condition. To tackle this, we can use a simple version(int) check
   in our update query, like we have in our update query where we are specifying that
   update must happen only when the version matches. Using an integer field is safe
   and computationally light. Other options are:
