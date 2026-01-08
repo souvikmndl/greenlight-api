@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"sync"
+	"time"
 
 	"github.com/tomasen/realip"
 	"golang.org/x/time/rate"
@@ -60,10 +61,38 @@ func (app *application) rateLimit(next http.Handler) http.Handler {
 */
 
 func (app *application) rateLimit(next http.Handler) http.Handler {
+
+	if !app.config.limiter.enabled {
+		return next
+	}
+
+	type client struct {
+		limiter  *rate.Limiter
+		lastSeen time.Time
+	}
+
 	var (
 		mu      sync.Mutex
-		clients = make(map[string]*rate.Limiter) // for client based rate limiting
+		clients = make(map[string]*client) // for client based rate limiting
 	)
+
+	// clean up client ip entries that are older than 3 seconds to allow for fresh requests
+	go func() {
+		for {
+			time.Sleep(time.Minute)
+
+			// Lock the mutex to prevent any rate limiter checks happening while clean up
+			mu.Lock()
+
+			for ip, client := range clients {
+				if time.Since(client.lastSeen) > 3*time.Minute {
+					delete(clients, ip)
+				}
+			}
+
+			mu.Unlock()
+		}
+	}()
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// fetch real IP of client, sometimes it might be hidden behind proxies
@@ -75,11 +104,13 @@ func (app *application) rateLimit(next http.Handler) http.Handler {
 		// check to see if the client IP already exists in the map. if it doesnt, then
 		// initialise a new rate limiter and add to map for the IP
 		if _, found := clients[ip]; !found {
-			clients[ip] = rate.NewLimiter(2, 4)
+			clients[ip] = &client{limiter: rate.NewLimiter(rate.Limit(app.config.limiter.rps), app.config.limiter.burst)}
 		}
 
+		clients[ip].lastSeen = time.Now()
+
 		// call the rate limiter check for this client only
-		if !clients[ip].Allow() {
+		if !clients[ip].limiter.Allow() {
 			mu.Unlock()
 			app.rateLimitExceededResponse(w, r)
 			return

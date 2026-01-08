@@ -14,3 +14,12 @@ Token Bucket limiter:
 - If we receive a request and bucket is empty, it means limit has been reached
 - MEANING: our api will allow a max "burst" of b requests in quick succession but 
   over time it will allow an average of r requests per second
+
+Check middleware.go for implementation details
+
+For distributed systems:
+- our implementation works for a single machine server only
+- in a distributed system, with multiple servers running behind a load balancer,
+  the LB itself (like NGINX or HAProxy) will have mechanisms for rate limiting
+- We can also use a fast db like Redis to maintain a request count for clients,
+  but all servers must have access to it
