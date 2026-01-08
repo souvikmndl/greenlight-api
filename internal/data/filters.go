@@ -1,6 +1,7 @@
 package data
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/souvikmndl/greenlight-api/internal/validator"
@@ -46,4 +47,38 @@ func (f Filters) sortDirection() string {
 		return "DESC"
 	}
 	return "ASC"
+}
+
+// limit returns the page size from filters
+func (f Filters) limit() int {
+	fmt.Println(f.Page, f.PageSize)
+	return f.PageSize
+}
+
+// offset returns the number of rows to skip for pagination
+func (f Filters) offset() int {
+	return (f.Page - 1) * f.PageSize
+}
+
+// Metadata holds the pagination metadata for the movies endpoint
+type Metadata struct {
+	CurrentPage  int `json:"current_page,omitzero"`
+	PageSize     int `json:"page_size,omitzero"`
+	FirstPage    int `json:"first_page,omitzero"`
+	LastPage     int `json:"last_page,omitzero"`
+	TotalRecords int `json:"total_records,omitzero"`
+}
+
+func calculateMetadata(totalRecords, page, pageSize int) Metadata {
+	if totalRecords == 0 {
+		return Metadata{}
+	}
+
+	return Metadata{
+		CurrentPage:  page,
+		PageSize:     pageSize,
+		FirstPage:    1,
+		LastPage:     (totalRecords + pageSize - 1) / pageSize,
+		TotalRecords: totalRecords,
+	}
 }

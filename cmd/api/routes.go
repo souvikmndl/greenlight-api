@@ -26,5 +26,7 @@ func (app *application) routes() http.Handler {
 	// if we spin up our own threads and there is a panic in them, that wont
 	// be handled and our app will crash. We will need to handle panics in
 	// each thread that we spin up.
-	return app.recoverPanic(router)
+	return app.recoverPanic(app.rateLimit(router))
+	// rateLimit is added after recoverPanic so that panic in the limiter is handled as well
+	// the RL mw will be before all others to reject requests without procesing in case of limits
 }

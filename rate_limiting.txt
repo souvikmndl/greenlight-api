@@ -1,0 +1,16 @@
+In this API, we will have:
+- token-bucket rate limiter https://en.wikipedia.org/wiki/Token_bucket#Algorithm
+- Global rate limiting
+- extend global rate limiter to support per-client limiting(IP based)
+- configure the rate limiter, including disabling it for testing 
+
+Token Bucket limiter:
+- A limiter controls how frequently events are allowed to happen. It implements a 
+  "token bucket" of size b, initially full and refilled at rate r tokens per second
+
+- We will have a bucket that starts with b tokens in it
+- Each time we receive a HTTP request, we will remove one token from it
+- Every 1/r seconds, a token is added back to the bucket, (max b tokens)
+- If we receive a request and bucket is empty, it means limit has been reached
+- MEANING: our api will allow a max "burst" of b requests in quick succession but 
+  over time it will allow an average of r requests per second
