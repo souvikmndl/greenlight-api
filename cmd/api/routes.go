@@ -22,6 +22,10 @@ func (app *application) routes() http.Handler {
 	router.HandlerFunc(http.MethodPost, "/v1/movies", app.createMovieHandler)
 	router.HandlerFunc(http.MethodPatch, "/v1/movies/:id", app.updateMovieHandler)
 	router.HandlerFunc(http.MethodDelete, "/v1/movies/:id", app.deleteMovieHandler)
+
+	// users routes
+	router.HandlerFunc(http.MethodPost, "/v1/users", app.registerUserHandler)
+
 	// this recoverPanic middleware will only handle panics in main thread
 	// if we spin up our own threads and there is a panic in them, that wont
 	// be handled and our app will crash. We will need to handle panics in

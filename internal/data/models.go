@@ -15,11 +15,13 @@ var (
 // Models wraps all individual models
 type Models struct {
 	Movies MovieModel
+	Users  UserModel
 }
 
 // NewModels creates a new instances of models inside Models
 func NewModels(db *sql.DB) Models {
 	return Models{
 		Movies: MovieModel{DB: db},
+		Users:  UserModel{DB: db},
 	}
 }
