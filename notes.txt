@@ -48,3 +48,28 @@ Data Race Conditions:
   has asked for the query to be terminated
 - it can also happen that while Scan() is called, to read the data into the
   variables, the ctx deadline is reached. In that case we get "context deadline exceeded"
+
+Embedding:
+- allows us to store files in the compiled binary itself
+- using embed we can access the files like a file system
+- the //go:embed <path></path> directive must be used on a package level,
+  not inside any func or method
+- <path> should be relative to the file containing the //go:embed 
+- root of this filesystem is the file/folder containing //go:embed, path
+  cannot contain . or .. or end with /. This means we can only embed files 
+  in the same directory(or sub directory) as the file containg //go:embed 
+- If <path> is a folder then all files in the folder and its subfolders are
+  recursively embedded 
+- We can specify multiple folders and files in one directive(//go:embed) like 
+  //go:embed "images" "styles/css" "favicon.ico"
+- Path should always be a forward slash, even on Windows
+
+Background routines:
+- in our registerUser Handler, we have a background go routine to send welcome
+  emails. It is a simple go routine but it is a closure, it uses "app" Handler.
+- even thoough our HandlerFunc will return before the routine executes fully, any 
+  changes made to the closed over variables (like app) will be reflected throughout 
+  our application
+- also if there are any panics, even in the background go routine, the entire api 
+  will shutdown. So it is important to use revocer() to recover from panics if any 
+  Here we will just log the err that recover() returns

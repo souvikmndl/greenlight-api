@@ -137,3 +137,20 @@ func (app *application) readInt(qs url.Values, key string, defaultValue int, v *
 
 	return i
 }
+
+// background is a wrapper func that accepts a func as a param
+// and adds recover() logic to it, and runs it as a background routine
+func (app *application) background(fn func()) {
+	app.wg.Add(1) // wait for bg routines to complete before graceful shutdown
+	go func() {
+		defer app.wg.Done()
+
+		defer func() {
+			if err := recover(); err != nil {
+				app.logger.Error(fmt.Sprintf("%v", err))
+			}
+		}()
+
+		fn()
+	}()
+}
