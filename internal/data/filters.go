@@ -1,7 +1,6 @@
 package data
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/souvikmndl/greenlight-api/internal/validator"
@@ -51,7 +50,6 @@ func (f Filters) sortDirection() string {
 
 // limit returns the page size from filters
 func (f Filters) limit() int {
-	fmt.Println(f.Page, f.PageSize)
 	return f.PageSize
 }
 

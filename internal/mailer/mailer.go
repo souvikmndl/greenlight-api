@@ -89,7 +89,7 @@ func (m *Mailer) Send(recipient, templateFile string, data any) error {
 
 	// loop for retry mechanism
 	for i := 0; i < 3; i++ {
-		err = m.client.DialAndSend()
+		err = m.client.DialAndSend(msg)
 		if err == nil {
 			return nil
 		}

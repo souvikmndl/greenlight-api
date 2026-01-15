@@ -51,15 +51,15 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		}
 		return
 	}
-
 	// sending welcome email
 	// panic in a background routine must be recovered else it will terminate the whole app
 	app.background(func() {
 		err := app.mailer.Send(user.Email, "user_welcome.tmpl", user)
 		if err != nil {
-			app.serverErrorResponse(w, r, err)
+			app.logger.Error(err.Error())
 			return
 		}
+		app.logger.Info("email sent", "success", true)
 	})
 
 	err = app.writeJSON(w, http.StatusCreated, envelope{"user": user}, nil)
