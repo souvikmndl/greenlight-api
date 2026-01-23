@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"crypto/sha256"
 	"database/sql"
 	"errors"
 	"time"
@@ -13,6 +14,8 @@ import (
 var (
 	// ErrDuplicateEmail is err msg for duplicate emails
 	ErrDuplicateEmail = errors.New("duplicate email")
+	// AnonymousUser for when we dont have any user details in a valid token
+	AnonymousUser = &User{}
 )
 
 // UserModel struct to isolate db queries against user table
@@ -186,4 +189,50 @@ func (m UserModel) Update(user *User) error {
 	}
 
 	return nil
+}
+
+// GetForToken fetches user and its toke n data using joins
+func (m UserModel) GetForToken(tokenScope, tokenPlainText string) (*User, error) {
+	tokenHash := sha256.Sum256([]byte(tokenPlainText))
+
+	query := `
+		SELECT users.id, users.created_at, users.name, users.email, users.password_hash, users.activated, users.version
+		FROM users
+		INNER JOIN tokens
+		ON users.id = tokens.user_id
+		WHERE tokens.hash = $1
+		AND tokens.scope = $2
+		AND tokens.expiry > $3`
+
+	args := []any{tokenHash[:], tokenScope, time.Now()}
+
+	var user User
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := m.DB.QueryRowContext(ctx, query, args...).Scan(
+		&user.ID,
+		&user.CreatedAt,
+		&user.Name,
+		&user.Email,
+		&user.Password.hash,
+		&user.Activated,
+		&user.Version,
+	)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, ErrRecordNotFound
+		default:
+			return nil, err
+		}
+	}
+
+	return &user, nil
+}
+
+// IsAnonymous returns true is the user is anonymous
+func (u *User) IsAnonymous() bool {
+	return u == AnonymousUser
 }

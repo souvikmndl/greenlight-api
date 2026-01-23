@@ -25,6 +25,9 @@ func (app *application) routes() http.Handler {
 
 	// users routes
 	router.HandlerFunc(http.MethodPost, "/v1/users", app.registerUserHandler)
+	router.HandlerFunc(http.MethodPut, "/v1/users/activated", app.activateUserHandler)
+
+	router.HandlerFunc(http.MethodPost, "/v1/tokens/authentication", app.createAuthenticationTokenHandler)
 
 	// this recoverPanic middleware will only handle panics in main thread
 	// if we spin up our own threads and there is a panic in them, that wont
