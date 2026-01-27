@@ -73,3 +73,7 @@ Background routines:
 - also if there are any panics, even in the background go routine, the entire api 
   will shutdown. So it is important to use revocer() to recover from panics if any 
   Here we will just log the err that recover() returns
+
+Authentication:
+- 401 Unauthorised for when you have missing or bad Authentication
+- 403 Forbidden for when user is authenticated but doesn't have permission for this action
