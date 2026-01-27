@@ -13,6 +13,8 @@ import (
 const (
 	// ScopeActivation to activate new user
 	ScopeActivation = "activation"
+	// ScopeAuthentication to authenticate user token
+	ScopeAuthentication = "authentication"
 )
 
 // Token struct holds data for an individual token, including plaintext and hashed version
