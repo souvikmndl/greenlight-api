@@ -1,0 +1,44 @@
+Read page 401 on CORS from Lets Go Further
+
+Two URLs have same origin if the scheme(http,https,etc), host and port(if specified) are the same.
+
+URL A              URL B          Same Origin?  Reason
+https://foo.com/a http://foo.com/a      No   Different scheme (http vs https)
+http://foo.com/a  http://www.foo.com/a  No   Different host (foo.com vs www.foo.com)
+http://foo.com/a  http://foo.com:443/a  No   Different port (no port vs 443)
+http://foo.com/a  http://foo.com/b      Yes  Only the path is different
+
+How browsers implement same-origin policy:
+- a webpage can embed certain resources from another origin in their html, like img src, css, js, etc 
+- A webpage can send data to a different origin 
+- But a webpage is not allowed to RECEIVE data from DIFF origin
+
+This is to prevent a potentially malicious site from reading potentially confidential data 
+
+When do we run up against Cross Origin issues while developing?
+- lets say we have a webpage foo.com containing some Js code. If this Js code tries to make an HTTP 
+   request to bar.com/data.json(different origin), then the request will be sent and processed by the 
+   bar.com server, but the user's web browser will block the response, so that the JS code from foo.com 
+   cannot see it. 
+
+
+Specifically, we want the middleware to check if the value of the request Origin header is an exact, case-
+sensitive, match for one of our trusted origins. If there is a match, then we should set an
+Access-Control-Allow-Origin response header which reflects (or echoes) back the value of
+the request’s Origin header.
+Otherwise, we should allow the request to proceed as normal without setting an
+Access-Control-Allow-Origin response header. In turn, that means that any cross-origin
+souviksmndl@gmail.com 10 Apr 2025
+responses will be blocked by a web browser, just like they were originally.
+A side effect of this is that the response will be different depending on the origin that the
+request is coming from. Specifically, the value of the Access-Control-Allow-Origin header
+may be different in the response, or it may not even be included at all.
+So because of this we should make sure to always set a Vary: Origin response header to
+warn any caches that the response may be different. This is actually really important, and it
+can be the cause of subtle bugs like this one if you forget to do it. As a rule of thumb:
+If your code makes a decision about what to return based on the content of a request header,
+you should include that header name in your Vary response header — even if the request
+didn’t include that header.
+
+Header to relax the same-origin policy so that Js can read responses from our API endpoint:
+- w.Header().Set("Access-Control-Allow-Origin","*")
