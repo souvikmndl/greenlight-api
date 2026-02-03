@@ -1,0 +1,64 @@
+## help: print this help message
+help:
+	@echo 'Usage:'
+	@sed -n 's/^##//p' ${MAKEFILE_LIST} | column -t -s ':' | sed -e 's/^/ /'
+NOTE: MAKEFILE_LIST is a special variable which contains the name of the makefile
+being parsed by make.
+Using sed the Makefile is parsed and the comments with ## are the help texts
+"make help" will return a list of all the commands with the ## descriptions
+
+Positioning the help at the top is also a deliberate choice. If we run make without 
+any cmds, it will by default execute the first cmd. That will give us a list of all cmds
+
+confirm:
+	@echo -n 'Are you sure? [y/N]' && read ans && [ $${ans:-N} = y ]
+    --> reads from the cmdline y/N and proceeds to the next step (search on stackoverflow how to do this)
+
+## run/api: run the cmd/api application
+run/api: --> using / as a seperator for namespacing
+	go run ./cmd/api
+
+## db/psql: connect to the databse using psql
+db/psql: 
+	psql ${GREENLIGHT_DB_DSN} --> can read environment variables from the env in which it is
+    run. Must be inside ${}
+
+## db/migrations/new name=$1: create a new database migration
+db/migrations/new:
+	@echo 'Creating migration files for ${name}' 
+    ----> we can also pass params, like:: make db/migrations/new name=some_name
+	migrate create -seq -ext=.sql -dir=./migrations ${name}
+
+## db/migrations/up: apply all up database migrations
+db/migrations/up: confirm (confirm is. prerequisite step to this one)
+--> by default makefile echos the commands given to it. So if we start a cmd with @ it will not be echoed
+	@echo 'Running up migrations...'
+	migrate -path ./migrations -database ${GREENLIGHT_DB_DSN} up
+
+-----------------------------------------------------------------------------------------------------------
+Another (and arguably, the primary) purpose of make is to help create files on disk where the name of a 
+target is the name of a file being created by the rule.
+If you’re using make primarily to execute actions, like we are, then this can cause a problem if
+there is a file in your project directory with the same path as a target name.
+
+A phony target is one that is not really the name of a file; rather it is just a name for a rule to
+be executed.
+
+-----make tidy:
+- The go mod tidy command will make sure the go.mod and go.sum files list all the
+	necessary dependencies for our project (and no unnecessary ones).
+- The go mod verify command will verify that the dependencies stored in your module
+	cache (located on your machine at $GOPATH/pkg/mod) match the cryptographic hashes in
+	the go.sum file.
+- The go mod vendor command will then copy the necessary source code from your
+	module cache into a new vendor directory in your project root.
+
+Note: It’s important to point out that there’s no easy way to verify that the checksums
+of the vendored dependencies match the checksums in the go.sum file. Or, in other
+words, there’s no equivalent to go mod verify which works directly on the contents of
+the vendor folder.
+To mitigate that, it’s a good idea to run both go mod verify and go mod vendor
+regularly — which is one of the reasons for including them both as part of the
+make tidy rule. Using go mod verify will verify that the dependencies in your module
+cache match the go.sum file, and go mod vendor will copy those same dependencies
+from the module cache into your vendor folder.

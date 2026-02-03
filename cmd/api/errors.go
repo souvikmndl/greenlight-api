@@ -84,7 +84,9 @@ func (app *application) inactiveAccountResponse(w http.ResponseWriter, r *http.R
 	app.errorResponse(w, r, http.StatusUnauthorized, message)
 }
 
+/*
 func (app *application) notPermittedResponse(w http.ResponseWriter, r *http.Request) {
 	message := "your user account doesnt have the necessary permissions to access this resource"
 	app.errorResponse(w, r, http.StatusForbidden, message)
 }
+*/

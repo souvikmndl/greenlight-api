@@ -77,3 +77,18 @@ Background routines:
 Authentication:
 - 401 Unauthorised for when you have missing or bad Authentication
 - 403 Forbidden for when user is authenticated but doesn't have permission for this action
+
+BUILD: 
+
+It’s important to note that the go build command caches build output in the Go build
+cache. This cached output will be reused again in future builds where appropriate, which
+can significantly speed up the overall build time for your application.
+If you’re not sure where your build cache is, you can check by running the go env GOCACHE
+command:
+
+You should also be aware that the build cache does not automatically detect any changes to
+C libraries that your code imports with cgo. So, if you’ve changed a C library since the last
+build, you’ll need to use the -a flag to force all packages to be rebuilt when running
+go build. Alternatively, you could use go clean to purge the cache:
+
+go clean -cache

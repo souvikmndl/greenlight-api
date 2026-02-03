@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"expvar"
 	"flag"
+	"fmt"
 	"log/slog"
 	"os"
 	"runtime"
@@ -15,9 +16,10 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/souvikmndl/greenlight-api/internal/data"
 	"github.com/souvikmndl/greenlight-api/internal/mailer"
+	"github.com/souvikmndl/greenlight-api/internal/vcs"
 )
 
-const version = "1.0.0"
+var version = vcs.Version()
 
 type (
 	config struct {
@@ -62,7 +64,7 @@ func main() {
 	flag.StringVar(&cfg.env, "env", "development", "Environment (development|staging|production)")
 
 	// default maxOpenConns for PSQL is 100, and ideally maxIdleConns == maxOpenConns
-	flag.StringVar(&cfg.db.dsn, "db-dsn", os.Getenv("GREENLIGHT_DB_DSN"), "PostgreSQL DSN")
+	flag.StringVar(&cfg.db.dsn, "db-dsn", "", "PostgreSQL DSN")
 	flag.IntVar(&cfg.db.maxOpenConns, "db-max-open-conns", 25, "PostgreSQL max open connections")
 	flag.IntVar(&cfg.db.maxIdleConns, "db-max-idle-cons", 25, "PostgreSQL max idle connections")
 	flag.DurationVar(&cfg.db.maxIdleTime, "db-max-idle-time", 15*time.Minute, "PostgreSQL max connection idle time")
@@ -83,7 +85,15 @@ func main() {
 		return nil
 	})
 
+	displayVersion := flag.Bool("version", false, "Display version and exit")
+
 	flag.Parse()
+
+	// if true this will just print our version number and exit
+	if *displayVersion {
+		fmt.Printf("Version:\t%s\n", version)
+		os.Exit(0)
+	}
 
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
